@@ -1,15 +1,20 @@
 import React, { Component } from 'react';
 import web3 from './web3';
-import styled from 'styled-components';
 import subscriptionContract from './subscriptionContract.js';
-
+// import styled from 'styled-components';
 class App extends Component {
   state = {
     account: null,
     accountTo: null,
     tokenAddress: null,
-    toAddress: null
+    toAddress: null,
+    gasPrice: null,
+    tokenAmount: null,
+    periodSeconds: null,
+    isReadyError: null,
+    exeError: null
   };
+
   async componentDidMount() {
     if (web3) {
       let accounts = await web3.eth.getAccounts();
@@ -18,8 +23,8 @@ class App extends Component {
         account: accounts[0],
         toAddress: '0xE28B9FF2b13f8dd3bCb64c4efF04d7361725c855',
         tokenAddress: '0x0000000000000000000000000000000000000000',
-        gasPrice: 1 * 10 ** 18,
-        tokenAmount: 1 * 10 ** 18,
+        gasPrice: 1000000000,
+        tokenAmount: 1000000000,
         periodSeconds: 60 * 5
       });
     }
@@ -69,15 +74,24 @@ class App extends Component {
       .getSubscriptionSigner(subscriptionHash, signature)
       .call();
     console.log('getSubscriptionSigner', getSubscriptionSigner);
+    try {
+      // let isReady = await subscriptionContract.methods.isSubscriptionReady(...parts, signature).call();
+      // console.log({ isReady });
+    } catch (error) {
+      console.log(error);
+      this.setState({ isReadyError: 'isSubscriptionReady failed - check the console' });
+    }
 
-    // let isReady = await subscriptionContract.methods.isSubscriptionReady(...parts, signature).call();
-    // console.log({ isReady });
-
-    let execResult = await subscriptionContract.methods.executeSubscription(...parts, signature).send({
-      from: account,
-      gas: '2000000'
-    });
-    console.log({ execResult });
+    try {
+      let execResult = await subscriptionContract.methods.executeSubscription(...parts, signature).send({
+        from: account,
+        gas: '2000000'
+      });
+      console.log({ execResult });
+    } catch (error) {
+      console.log(error);
+      this.setState({ exeError: 'executeSubscription failed - check the console' });
+    }
   }
 
   handleInput = event => {
@@ -127,7 +141,10 @@ class App extends Component {
           {this.state.periodSeconds}
         </div>
 
-        <div>{this.state.account && <button onClick={() => this.testSubscription()}>run</button>}</div>
+        <div>{this.state.account && <button onClick={() => this.testSubscription()}>Run</button>}</div>
+        {/* {this.state.isReadyError && <div>{this.state.isReadyError}</div>} */}
+
+        {this.state.exeError && <div>{this.state.exeError}</div>}
       </div>
     );
   }
