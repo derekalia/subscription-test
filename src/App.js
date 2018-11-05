@@ -142,7 +142,7 @@ class App extends Component {
         </div>
 
         <div>{this.state.account && <button onClick={() => this.testSubscription()}>Run</button>}</div>
-        {/* {this.state.isReadyError && <div>{this.state.isReadyError}</div>} */}
+        {this.state.isReadyError && <div>{this.state.isReadyError}</div>}
 
         {this.state.exeError && <div>{this.state.exeError}</div>}
       </div>
